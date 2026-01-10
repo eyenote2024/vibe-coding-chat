@@ -732,7 +732,14 @@
                     if (token) console.log('DEBUG: Token prefix:', token.substring(0, 10) + '...');
 
                     if (!token) {
-                        throw new Error('無法取得登入憑證 (Token is null)');
+                        console.warn('DEBUG: Token missing, attempting refresh...');
+                        const refreshResult = await supabase.auth.refreshSession();
+                        const session = refreshResult.data.session;
+                        token = session?.access_token;
+                    }
+
+                    if (!token) {
+                        throw new Error('無法取得登入憑證 (Token is null). 請嘗試重新登入。');
                     }
 
                     const response = await fetch(EDGE_FUNCTION_URL, {
