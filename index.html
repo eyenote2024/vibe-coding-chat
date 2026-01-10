@@ -457,6 +457,59 @@
 </head>
 
 <body>
+    <!-- Passcode Overlay -->
+    <div id="passcodeOverlay"
+        style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--noir-black);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;">
+        <h2
+            style="font-family:'Playfair Display';color:var(--text-primary);letter-spacing:0.2em;text-transform:uppercase;">
+            Director Access</h2>
+        <input type="password" id="passcodeInput" placeholder="Enter Access Code"
+            style="background:transparent;border:1px solid var(--noir-slate);padding:10px 20px;color:var(--text-primary);font-size:1.2rem;text-align:center;letter-spacing:0.3em;border-radius:50px;outline:none;width:250px;transition:all 0.3s ease;">
+        <button id="authButton"
+            style="background:var(--accent-gold);color:var(--noir-black);border:none;padding:10px 30px;border-radius:50px;font-weight:bold;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;transition:all 0.3s ease;">
+            Unlocks
+        </button>
+        <p id="authError" style="color:#ff4444;font-size:0.8rem;opacity:0;transition:opacity 0.3s ease;">Access Denied
+        </p>
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('passcodeOverlay');
+            const input = document.getElementById('passcodeInput');
+            const btn = document.getElementById('authButton');
+            const err = document.getElementById('authError');
+            const PASSCODE = 'EYE2026';
+
+            function checkPasscode() {
+                if (input.value === PASSCODE) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 500); // Remove after fade out
+                    localStorage.setItem('vibe_auth', 'true'); // Persist session
+                } else {
+                    err.style.opacity = '1';
+                    input.style.borderColor = '#ff4444';
+                    input.value = '';
+                    setTimeout(() => {
+                        err.style.opacity = '0';
+                        input.style.borderColor = 'var(--noir-slate)';
+                    }, 2000);
+                }
+            }
+
+            // Check if already authenticated
+            if (localStorage.getItem('vibe_auth') === 'true') {
+                overlay.remove();
+            }
+
+            btn.addEventListener('click', checkPasscode);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPasscode();
+            });
+            input.focus();
+        })();
+    </script>
+
     <div class="app-container">
         <!-- Header -->
         <header class="header">
