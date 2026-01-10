@@ -541,13 +541,22 @@
                         },
                         body: JSON.stringify({
                             message: userMessage,
-                            chatHistory: chatHistory
+                            chatHistory: chatHistory,
+                            model: 'gemini-3-flash-preview' // 指定使用 Flash 模型
                         })
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || `API error: ${response.status}`);
+                        let errorMessage = errorData.error || `API error: ${response.status}`;
+
+                        if (response.status === 429) {
+                            errorMessage = 'API 配額已滿，請稍後再試 (429)。';
+                        } else if (response.status === 401) {
+                            errorMessage = 'API 認證失敗，請檢查 Key (401)。';
+                        }
+
+                        throw new Error(errorMessage);
                     }
 
                     const data = await response.json();
@@ -635,7 +644,7 @@
                         .from(TABLE_NAME)
                         .select('*')
                         .order('created_at', { ascending: false })
-                        .limit(10);
+                        .limit(100);
 
                     if (error) {
                         console.error('Error loading chat history:', error);
@@ -691,10 +700,11 @@
                     const { data: historyData } = await supabase
                         .from(TABLE_NAME)
                         .select('role, content')
-                        .order('created_at', { ascending: true })
-                        .limit(20);
+                        .select('role, content')
+                        .order('created_at', { ascending: false })
+                        .limit(50);
 
-                    const chatHistory = historyData || [];
+                    const chatHistory = historyData ? historyData.reverse() : [];
 
                     // 4. Call Edge Function with chat history
                     const aiContent = await generateAIResponse(content, chatHistory);
