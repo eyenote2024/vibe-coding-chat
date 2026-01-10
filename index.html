@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Coding Chat | 黑色電影對話</title>
+    <meta name="description" content="A cinematic dark-mode chat interface powered by Supabase">
+
+    <!-- Google Fonts - Cinematic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* ============================================
+           CSS Design System - Film Noir Aesthetics
+           ============================================ */
+
+        :root {
+            /* Noir Color Palette */
+            --noir-black: #0a0a0a;
+            --noir-dark: #141414;
+            --noir-charcoal: #1e1e1e;
+            --noir-slate: #2a2a2a;
+            --noir-smoke: #3a3a3a;
+
+            /* Accent Colors - Film Tones */
+            --accent-gold: #c9a227;
+            --accent-amber: #d4a574;
+            --accent-warm: #8b7355;
+            --accent-cool: #5a6a7a;
+
+            /* Text Colors */
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+
+            /* User & AI Bubble Colors */
+            --user-gradient: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            --ai-gradient: linear-gradient(135deg, #1a2a1a 0%, #0f1f0f 100%);
+            --user-border: #c9a227;
+            --ai-border: #4a7c4a;
+
+            /* Shadows & Effects */
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 30px rgba(201, 162, 39, 0.1);
+            --glass-blur: blur(10px);
+
+            /* Spacing */
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 1.5rem;
+            --space-lg: 2rem;
+            --space-xl: 3rem;
+
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-full: 50px;
+        }
+
+        /* ============================================
+           Base Styles
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--noir-black);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        /* Cinematic Film Grain Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* ============================================
+           Layout Container
+           ============================================ */
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--space-md);
+            position: relative;
+        }
+
+        /* ============================================
+           Header - Cinematic Title
+           ============================================ */
+
+        .header {
+            text-align: center;
+            padding: var(--space-lg) 0;
+            border-bottom: 1px solid var(--noir-slate);
+            margin-bottom: var(--space-md);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: var(--accent-gold);
+            box-shadow: 0 0 10px var(--accent-gold);
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            margin-bottom: var(--space-xs);
+        }
+
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        /* Status Indicator */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            margin-top: var(--space-sm);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 5px var(--accent-gold);
+            }
+
+            50% {
+                opacity: 0.5;
+                box-shadow: 0 0 15px var(--accent-gold);
+            }
+        }
+
+        /* ============================================
+           Chat Area
+           ============================================ */
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-sm);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: var(--noir-dark);
+            border-radius: var(--radius-full);
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: var(--noir-smoke);
+            border-radius: var(--radius-full);
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-warm);
+        }
+
+        /* ============================================
+           Message Bubbles
+           ============================================ */
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            animation: fadeSlideIn 0.4s ease-out;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+        }
+
+        .message-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 6px;
+            padding-left: 12px;
+        }
+
+        .message.user .message-label {
+            color: var(--accent-gold);
+            text-align: right;
+            padding-right: 12px;
+            padding-left: 0;
+        }
+
+        .message.ai .message-label {
+            color: var(--ai-border);
+        }
+
+        .message-bubble {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            position: relative;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .message.user .message-bubble {
+            background: var(--user-gradient);
+            border: 1px solid var(--user-border);
+            border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
+        }
+
+        .message.ai .message-bubble {
+            background: var(--ai-gradient);
+            border: 1px solid var(--ai-border);
+            border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+        }
+
+        .message-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .message-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-sm);
+            opacity: 0.5;
+        }
+
+        /* ============================================
+           Input Area
+           ============================================ */
+
+        .input-area {
+            padding: var(--space-md) 0;
+            border-top: 1px solid var(--noir-slate);
+        }
+
+        .input-container {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+            background: var(--noir-charcoal);
+            border-radius: var(--radius-full);
+            padding: 8px 8px 8px 24px;
+            border: 1px solid var(--noir-slate);
+            transition: all 0.3s ease;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--accent-gold);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .message-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-warm) 100%);
+            border: none;
+            color: var(--noir-black);
+            padding: 12px 24px;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(201, 162, 39, 0.4);
+        }
+
+        .send-button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading State */
+        .loading-indicator {
+            display: none;
+            align-items: center;
+            gap: var(--space-xs);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: var(--space-sm);
+        }
+
+        .loading-indicator.active {
+            display: flex;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            animation: loadingBounce 1.4s ease-in-out infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================
+           Responsive Design
+           ============================================ */
+
+        @media (max-width: 600px) {
+            .app-container {
+                padding: var(--space-sm);
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                letter-spacing: 0.1em;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .send-button {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Vibe Chat</h1>
+            <p class="subtitle">Cinematic Conversation</p>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>Connected to Supabase</span>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main class="chat-area" id="chatArea">
+            <div class="empty-state" id="emptyState">
+                <div class="icon">🎬</div>
+                <p>The stage is set.<br>Begin your dialogue.</p>
+            </div>
+        </main>
+
+        <!-- Loading Indicator -->
+        <div class="loading-indicator" id="loadingIndicator">
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span>AI is contemplating...</span>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="input-area">
+            <div class="input-container">
+                <input type="text" class="message-input" id="messageInput" placeholder="Speak your mind..."
+                    autocomplete="off">
+                <button class="send-button" id="sendButton">
+                    Send
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Supabase SDK (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        (function () {
+            'use strict';
+
+            // ============================================
+            // Supabase Configuration
+            // ============================================
+
+            const SUPABASE_URL = 'https://zlycahzwehttwbgaofhu.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpseWNhaHp3ZWh0dHdiZ2FvZmh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwMjgyNTMsImV4cCI6MjA4MzYwNDI1M30.HRBkuzz_t2_LKwJfk7WqI-0LqjQrnEwcHFE5WrtJL88';
+            const TABLE_NAME = 'chat_history';
+
+            // Initialize Supabase Client
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            // ============================================
+            // DOM Elements
+            // ============================================
+
+            const chatArea = document.getElementById('chatArea');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const emptyState = document.getElementById('emptyState');
+
+            // ============================================
+            // Supabase Edge Function for Gemini API
+            // ============================================
+
+            const EDGE_FUNCTION_URL = 'https://zlycahzwehttwbgaofhu.supabase.co/functions/v1/gemini-chat';
+
+            async function generateAIResponse(userMessage, chatHistory = []) {
+                try {
+                    const response = await fetch(EDGE_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: userMessage,
+                            chatHistory: chatHistory
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data.response;
+                } catch (error) {
+                    console.error('Edge Function error:', error);
+                    throw error;
+                }
+            }
+
+            // ============================================
+            // Time Formatting
+            // ============================================
+
+            function formatTime(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleTimeString('zh-TW', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            // ============================================
+            // Message Rendering
+            // ============================================
+
+            function createMessageElement(role, content, createdAt) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${role}`;
+
+                const label = role === 'user' ? 'You' : 'AI';
+                const timeStr = formatTime(createdAt);
+
+                messageDiv.innerHTML = `
+                <span class="message-label">${label}</span>
+                <div class="message-bubble">
+                    <p class="message-content">${escapeHtml(content)}</p>
+                    <span class="message-time">${timeStr}</span>
+                </div>
+            `;
+
+                return messageDiv;
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function scrollToBottom() {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            function hideEmptyState() {
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
+            }
+
+            // ============================================
+            // Supabase Operations
+            // ============================================
+
+            // Insert a message into the database
+            async function insertMessage(role, content) {
+                const { data, error } = await supabase
+                    .from(TABLE_NAME)
+                    .insert([{ role, content }])
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Error inserting message:', error);
+                    throw error;
+                }
+
+                return data;
+            }
+
+            // Load recent chat history (last 10 messages)
+            async function loadChatHistory() {
+                try {
+                    const { data, error } = await supabase
+                        .from(TABLE_NAME)
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(10);
+
+                    if (error) {
+                        console.error('Error loading chat history:', error);
+                        return;
+                    }
+
+                    if (data && data.length > 0) {
+                        hideEmptyState();
+
+                        // Reverse to show oldest first
+                        const messages = data.reverse();
+
+                        messages.forEach(msg => {
+                            const messageEl = createMessageElement(msg.role, msg.content, msg.created_at);
+                            chatArea.appendChild(messageEl);
+                        });
+
+                        scrollToBottom();
+                    }
+                } catch (err) {
+                    console.error('Failed to load chat history:', err);
+                }
+            }
+
+            // ============================================
+            // Send Message Flow
+            // ============================================
+
+            async function sendMessage() {
+                const content = messageInput.value.trim();
+
+                if (!content) return;
+
+                // Disable input while processing
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                hideEmptyState();
+
+                try {
+                    // 1. Insert user message
+                    const userData = await insertMessage('user', content);
+                    const userMessageEl = createMessageElement('user', content, userData.created_at);
+                    chatArea.appendChild(userMessageEl);
+                    scrollToBottom();
+
+                    // Clear input
+                    messageInput.value = '';
+
+                    // 2. Show loading indicator
+                    loadingIndicator.classList.add('active');
+
+                    // 3. Fetch recent chat history for context (last 20 messages)
+                    const { data: historyData } = await supabase
+                        .from(TABLE_NAME)
+                        .select('role, content')
+                        .order('created_at', { ascending: true })
+                        .limit(20);
+
+                    const chatHistory = historyData || [];
+
+                    // 4. Call Edge Function with chat history
+                    const aiContent = await generateAIResponse(content, chatHistory);
+                    const aiData = await insertMessage('ai', aiContent);
+
+                    // 5. Hide loading and display AI message
+                    loadingIndicator.classList.remove('active');
+                    const aiMessageEl = createMessageElement('ai', aiContent, aiData.created_at);
+                    chatArea.appendChild(aiMessageEl);
+                    scrollToBottom();
+
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    loadingIndicator.classList.remove('active');
+                    alert('發送失敗：' + error.message);
+                } finally {
+                    // Re-enable input
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
+                    messageInput.focus();
+                }
+            }
+
+            // ============================================
+            // Event Listeners
+            // ============================================
+
+            sendButton.addEventListener('click', sendMessage);
+
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // ============================================
+            // Initialize App
+            // ============================================
+
+            // Since script is at end of body, DOM is ready - initialize immediately
+            loadChatHistory();
+            messageInput.focus();
+
+            console.log('Vibe Chat initialized successfully');
+        })();
+    </script>
+</body>
+
+</html>
